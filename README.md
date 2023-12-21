@@ -37,7 +37,9 @@ resolve: {
 ```
 
 ## 3.图标选择器
+
 项目修改了原有的con使用方式，修改为**el-icon-bottom**这种形式。
+
 使用命名空间，修改ui框架内组件样式
 1.需要自定义一个类名空间
 
@@ -57,3 +59,52 @@ resolve: {
   }
 }
 ```
+
+## 4.省市区三级联动选择器
+
+github 获取json数据 [modood/Administrative-divisions-of-China: 中华人民共和国行政区划：省级（省份）、 地级（城市）、 县级（区县）、 乡级（乡镇街道）、 村级（村委会居委会） ，中国省市区镇村二级三级四级五级联动地址数据。 (github.com)](https://github.com/modood/Administrative-divisions-of-China)
+
+通过监听省级选择器获取市级数据，监听市级选择器获取区县级数据
+
+``` vue
+// 监听省数据  变动时 获取城市数据
+watch(()=>province.value, val => {
+  if(val){
+    let citys = areas.value.find(item => item.code === province.value)!.children
+    cityDatas.value =citys
+  }
+  city.value = ''
+  area.value =''
+})
+// 监听城市数据  变动时 获取区域数据
+watch(()=>city.value, val => {
+  if(val){
+    let area = cityDatas.value.find(item => item.code === city.value)!.children
+    areaDatas.value = area
+  }
+  area.value =''
+})
+// 监听区域数据，有时派发数据给父组件
+watch(()=> area.value,value => {
+  if(value){
+    let proviceEmitData:areaDataType = {
+      code: province.value,
+      name: areas.value.find(item => item.code === province.value).name
+    }
+    let cityEmitData:areaDataType = {
+      code: city.value,
+      name: cityDatas.value.find(item => item.code === city.value).name
+    }
+    let areaEmitData:areaDataType = {
+      code: value,
+      name: areaDatas.value.find(item => item.code === area.value).name
+    }
+    emits('change',{
+      province: proviceEmitData,
+      city: cityEmitData,
+      area: areaEmitData
+    })
+  }
+})
+```
+
